@@ -1,0 +1,47 @@
+---
+- name: Installiere und konfiguriere Webserver auf EC2-Instanzen
+  hosts: all
+  become: yes
+  tasks:
+    - name: Installiere httpd auf Amazon Linux
+      yum:
+        name: httpd
+        state: present
+      when: ansible_distribution == "Amazon"
+      notify: Starte httpd
+
+    - name: Installiere apache2 auf Ubuntu
+      apt:
+        name: apache2
+        state: present
+      when: ansible_distribution == "Ubuntu"
+      notify: Starte apache2
+
+    - name: Lege individuelle index.html für Amazon Linux
+      copy:
+        content: "<html><body><h1>Amazon Linux EC2 Instanz</h1></body></html>"
+        dest: /var/www/html/index.html
+      when: ansible_distribution == "Amazon"
+      notify: Datei abgelegt
+
+    - name: Lege individuelle index.html für Ubuntu
+      copy:
+        content: "<html><body><h1>Ubuntu EC2 Instanz</h1></body></html>"
+        dest: /var/www/html/index.html
+      when: ansible_distribution == "Ubuntu"
+      notify: Datei abgelegt
+
+  handlers:
+    - name: Starte httpd
+      service:
+        name: httpd
+        state: restarted
+
+    - name: Starte apache2
+      service:
+        name: apache2
+        state: restarted
+
+    - name: Datei abgelegt
+      debug:
+        msg: "Die index.html Datei wurde im Webroot-Verzeichnis abgelegt."
